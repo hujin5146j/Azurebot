@@ -409,18 +409,18 @@ bot.on("message", async (msg) => {
   if (!msg.text) return;
   
   const chatId = msg.chat.id;
+  const text = msg.text.trim();
   
-  switch (msg.text) {
-    case "📚 My Library":
-      return bot.emit("text", { ...msg, text: "/library" });
-    case "🌐 Supported Sites":
-      return bot.emit("text", { ...msg, text: "/sites" });
-    case "⚡️ Search Novel":
-      return bot.sendMessage(chatId, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
-    case "ℹ️ About":
-      return bot.emit("text", { ...msg, text: "/about" });
-    case "❓ Help":
-      return bot.emit("text", { ...msg, text: "/help" });
+  if (text === "📚 My Library") {
+    return bot.emit("text", { ...msg, text: "/library" });
+  } else if (text === "🌐 Supported Sites") {
+    return bot.emit("text", { ...msg, text: "/sites" });
+  } else if (text === "⚡️ Search Novel") {
+    return bot.sendMessage(chatId, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
+  } else if (text === "ℹ️ About") {
+    return bot.emit("text", { ...msg, text: "/about" });
+  } else if (text === "❓ Help") {
+    return bot.emit("text", { ...msg, text: "/help" });
   }
 });
 
