@@ -86,12 +86,18 @@ async function scrapeNovel(novelUrl, limit = 25, onProgress = null) {
     });
 
     const chaptersToScrape = chapterLinks.slice(0, limit);
+    if (onProgress) onProgress(0, chaptersToScrape.length);
+    
     console.log(`Found ${chapterLinks.length} chapters, scraping ${chaptersToScrape.length}`);
 
     const chapters = [];
-    for (const link of chaptersToScrape) {
-      chapters.push(await scrapeChapter(link));
-      await delay(1200);
+    const concurrency = 5;
+    for (let i = 0; i < chaptersToScrape.length; i += concurrency) {
+      const batch = chaptersToScrape.slice(i, i + concurrency);
+      const results = await Promise.all(batch.map(link => scrapeChapter(link)));
+      chapters.push(...results);
+      if (onProgress) onProgress(Math.min(i + concurrency, chaptersToScrape.length), chaptersToScrape.length);
+      await delay(1000);
     }
 
     return { novelTitle, chapters };
