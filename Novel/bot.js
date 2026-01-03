@@ -260,7 +260,13 @@ async function processNovel(chatId, novelUrl, chapterLimit, infoMsg = null) {
       const elapsed = (now - startTime) / 1000;
       const speed = current / elapsed; // chapters per second
       const remaining = total - current;
-      const eta = speed > 0 ? formatTime(remaining / speed) : "calculating...";
+      
+      // Better ETA calculation
+      let etaText = "calculating...";
+      if (speed > 0) {
+        const remainingSeconds = remaining / speed;
+        etaText = formatTime(remainingSeconds);
+      }
       
       try {
         await bot.editMessageText(
@@ -268,11 +274,11 @@ async function processNovel(chatId, novelUrl, chapterLimit, infoMsg = null) {
           `📖 *${siteName}*\n` +
           `📊 Progress: ${current}/${total}\n` +
           `⏳ ${progress}\n` +
-          `⏱️ ETA: ${eta}`,
+          `⏱️ ETA: ${etaText}`,
           { chat_id: chatId, message_id: processingMsg.message_id, parse_mode: "Markdown" }
         );
       } catch (e) {
-        // Ignore message unchanged error
+        // Ignore message unchanged error or throttling
       }
     });
 
