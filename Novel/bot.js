@@ -252,7 +252,28 @@ async function processNovel(chatId, novelUrl, chapterLimit, infoMsg = null) {
     let lastUpdateTime = startTime;
 
     const { novelTitle: scrapedTitle, chapters } = await scraper(novelUrl, chapterLimit, async (current, total) => {
-      // ... existing progress logic ...
+      const now = Date.now();
+      if (now - lastUpdateTime < 2000) return; // Update every 2 seconds
+      
+      lastUpdateTime = now;
+      const progress = createProgressBar(current, total);
+      const elapsed = (now - startTime) / 1000;
+      const speed = current / elapsed; // chapters per second
+      const remaining = total - current;
+      const eta = speed > 0 ? formatTime(remaining / speed) : "calculating...";
+      
+      try {
+        await bot.editMessageText(
+          `🚀 *Scraping Chapters...*\n\n` +
+          `📖 *${siteName}*\n` +
+          `📊 Progress: ${current}/${total}\n` +
+          `⏳ ${progress}\n` +
+          `⏱️ ETA: ${eta}`,
+          { chat_id: chatId, message_id: processingMsg.message_id, parse_mode: "Markdown" }
+        );
+      } catch (e) {
+        // Ignore message unchanged error
+      }
     });
 
     console.log(`Scraper returned title: "${scrapedTitle}" and ${chapters?.length || 0} chapters`);

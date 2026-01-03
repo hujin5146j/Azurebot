@@ -476,10 +476,13 @@ async function scrapeChaptersLogic($, novelUrl, limit, onProgress) {
     }
 
     const chapters = [];
-    for (let i = 0; i < chaptersToScrape.length; i++) {
-      chapters.push(await scrapeChapterWithRetry(chaptersToScrape[i], 3));
-      if (onProgress) onProgress(i + 1, chaptersToScrape.length);
-      await new Promise(r => setTimeout(r, 2000));
+    const concurrency = 5;
+    for (let i = 0; i < chaptersToScrape.length; i += concurrency) {
+      const batch = chaptersToScrape.slice(i, i + concurrency);
+      const results = await Promise.all(batch.map(url => scrapeChapterWithRetry(url, 3)));
+      chapters.push(...results);
+      if (onProgress) onProgress(Math.min(i + concurrency, chaptersToScrape.length), chaptersToScrape.length);
+      await new Promise(r => setTimeout(r, 1000));
     }
     return chapters;
 }
