@@ -61,10 +61,13 @@ async function scrapeNovel(novelUrl, limit = 25, onProgress = null) {
     if (onProgress) onProgress(0, chaptersToScrape.length);
 
     const chapters = [];
-    for (let i = 0; i < chaptersToScrape.length; i++) {
-      chapters.push(await scrapeChapterWithRetry(chaptersToScrape[i], 3));
-      if (onProgress) onProgress(i + 1, chaptersToScrape.length);
-      await delay(Math.random() * 1500 + 500);
+    const concurrency = 5;
+    for (let i = 0; i < chaptersToScrape.length; i += concurrency) {
+      const batch = chaptersToScrape.slice(i, i + concurrency);
+      const results = await Promise.all(batch.map(url => scrapeChapterWithRetry(url, 3)));
+      chapters.push(...results);
+      if (onProgress) onProgress(Math.min(i + concurrency, chaptersToScrape.length), chaptersToScrape.length);
+      await delay(Math.random() * 1000 + 500);
     }
     return { novelTitle, chapters };
   } catch (err) {
