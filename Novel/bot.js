@@ -350,16 +350,43 @@ async function processNovel(chatId, novelUrl, chapterLimit, infoMsg = null) {
 bot.onText(/\/start/, async (msg) => {
   const helpMessage = 
     "👋 *Welcome to WebNovel EPUB Bot!*\n\n" +
-    "Paste a novel URL to get started.\n\n" +
-    "📍 *Commands:*\n" +
-    "/library - View your saved novels\n" +
-    "/sites - Supported websites\n" +
-    "/help - Show this message";
+    "I can convert your favorite web novels into high-quality EPUB files for your e-reader.\n\n" +
+    "🚀 *How to use:*\n" +
+    "1️⃣ Paste a novel URL (e.g., RoyalRoad, Webnovel)\n" +
+    "2️⃣ Select the chapter range\n" +
+    "3️⃣ Download your EPUB file!\n\n" +
+    "📍 *Quick Access:*";
+
+  const keyboard = {
+    reply_markup: {
+      keyboard: [
+        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
+        [{ text: "❓ Help" }]
+      ],
+      resize_keyboard: true,
+      one_time_keyboard: false
+    },
+    parse_mode: "Markdown"
+  };
 
   try {
-    await bot.sendMessage(msg.chat.id, helpMessage, { parse_mode: "Markdown" });
+    await bot.sendMessage(msg.chat.id, helpMessage, keyboard);
   } catch (err) {
     console.error("Error in /start command:", err.message);
+  }
+});
+
+// Handle Reply Keyboard buttons
+bot.on("message", async (msg) => {
+  if (!msg.text) return;
+  
+  switch (msg.text) {
+    case "📚 My Library":
+      return bot.emit("text", { ...msg, text: "/library" });
+    case "🌐 Supported Sites":
+      return bot.emit("text", { ...msg, text: "/sites" });
+    case "❓ Help":
+      return bot.emit("text", { ...msg, text: "/help" });
   }
 });
 
