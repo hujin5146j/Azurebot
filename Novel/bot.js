@@ -370,19 +370,19 @@ async function processNovel(chatId, novelUrl, chapterLimit, infoMsg = null) {
 // ---- COMMANDS ----
 bot.onText(/\/start/, async (msg) => {
   const helpMessage = 
-    "👋 *Welcome to WebNovel EPUB Bot!*\n\n" +
-    "I can convert your favorite web novels into high-quality EPUB files for your e-reader.\n\n" +
-    "🚀 *How to use:*\n" +
-    "1️⃣ Paste a novel URL (e.g., RoyalRoad, Webnovel)\n" +
-    "2️⃣ Select the chapter range\n" +
-    "3️⃣ Download your EPUB file!\n\n" +
-    "📍 *Quick Access:*";
+    "✨ *Welcome to WebNovel EPUB Bot* ✨\n\n" +
+    "I'm your personal library assistant! I can fetch web novels and turn them into beautiful EPUBs for your Kindle, iPad, or e-reader.\n\n" +
+    "🚀 *Getting Started:*\n" +
+    "1️⃣ *Send me a link* from any supported site\n" +
+    "2️⃣ *Choose your range* using the buttons\n" +
+    "3️⃣ *Get your book* instantly!\n\n" +
+    "👇 *Tap a button below to explore:*";
 
   const keyboard = {
     reply_markup: {
       keyboard: [
         [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
-        [{ text: "❓ Help" }]
+        [{ text: "⚡️ Search Novel" }, { text: "❓ Help" }]
       ],
       resize_keyboard: true,
       one_time_keyboard: false
@@ -406,6 +406,8 @@ bot.on("message", async (msg) => {
       return bot.emit("text", { ...msg, text: "/library" });
     case "🌐 Supported Sites":
       return bot.emit("text", { ...msg, text: "/sites" });
+    case "⚡️ Search Novel":
+      return bot.sendMessage(msg.chat.id, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
     case "❓ Help":
       return bot.emit("text", { ...msg, text: "/help" });
   }
