@@ -375,8 +375,8 @@ async function processNovel(chatId, novelUrl, chapterLimit, infoMsg = null) {
 
 // ---- COMMANDS ----
 bot.onText(/\/start/, async (msg) => {
+  const welcomeMessage = "✨ *Welcome to WebNovel EPUB Bot* ✨";
   const helpMessage = 
-    "✨ *Welcome to WebNovel EPUB Bot* ✨\n\n" +
     "I'm your personal library assistant! I can fetch web novels and turn them into beautiful EPUBs for your Kindle, iPad, or e-reader.\n\n" +
     "🚀 *Getting Started:*\n" +
     "1️⃣ *Send me a link* from any supported site\n" +
@@ -397,6 +397,7 @@ bot.onText(/\/start/, async (msg) => {
   };
 
   try {
+    await bot.sendMessage(msg.chat.id, welcomeMessage, { parse_mode: "Markdown" });
     await bot.sendMessage(msg.chat.id, helpMessage, keyboard);
   } catch (err) {
     console.error("Error in /start command:", err.message);
@@ -407,13 +408,15 @@ bot.onText(/\/start/, async (msg) => {
 bot.on("message", async (msg) => {
   if (!msg.text) return;
   
+  const chatId = msg.chat.id;
+  
   switch (msg.text) {
     case "📚 My Library":
       return bot.emit("text", { ...msg, text: "/library" });
     case "🌐 Supported Sites":
       return bot.emit("text", { ...msg, text: "/sites" });
     case "⚡️ Search Novel":
-      return bot.sendMessage(msg.chat.id, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
+      return bot.sendMessage(chatId, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
     case "ℹ️ About":
       return bot.emit("text", { ...msg, text: "/about" });
     case "❓ Help":
