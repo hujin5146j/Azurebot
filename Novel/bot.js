@@ -444,8 +444,19 @@ bot.onText(/\/sites/, async (msg) => {
     "• NovelHall, NovelNext, NovelCool, etc.\n\n" +
     "_Just paste any novel link to try!_";
 
+  const keyboard = {
+    reply_markup: {
+      keyboard: [
+        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
+        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
+      ],
+      resize_keyboard: true
+    },
+    parse_mode: "Markdown"
+  };
+
   try {
-    await bot.sendMessage(msg.chat.id, sitesList, { parse_mode: "Markdown" });
+    await bot.sendMessage(msg.chat.id, sitesList, keyboard);
   } catch (err) {
     console.error("Error in /sites command:", err.message);
   }
@@ -498,6 +509,16 @@ bot.onText(/\/help/, async (msg) => {
 
 bot.onText(/\/library/, async (msg) => {
   const userId = msg.chat.id;
+  const keyboard = {
+    reply_markup: {
+      keyboard: [
+        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
+        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
+      ],
+      resize_keyboard: true
+    }
+  };
+
   try {
     const epubs = await getUserLibrary(userId);
     const totalSize = await getLibrarySize(userId);
@@ -507,12 +528,12 @@ bot.onText(/\/library/, async (msg) => {
       await bot.sendMessage(userId, 
         "📚 *Your Library is Empty*\n\n" +
         "Start by sending a novel URL to create your first EPUB!",
-        { parse_mode: "Markdown" }
+        { ...keyboard, parse_mode: "Markdown" }
       );
       return;
     }
 
-    await bot.sendMessage(userId, `📚 *Your EPUB Library*\n📊 ${epubs.length} books | 💾 ${sizeMB} MB`, { parse_mode: "Markdown" });
+    await bot.sendMessage(userId, `📚 *Your EPUB Library*\n📊 ${epubs.length} books | 💾 ${sizeMB} MB`, { ...keyboard, parse_mode: "Markdown" });
 
     for (const epub of epubs) {
       const date = new Date(epub.created_at).toLocaleDateString();
