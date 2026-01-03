@@ -21,9 +21,9 @@ args = "Telegram Bot"
 name = "Telegram Bot"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd Novel && node bot.js"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node bot.js"
