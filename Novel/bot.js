@@ -382,7 +382,7 @@ bot.onText(/\/start/, async (msg) => {
     reply_markup: {
       keyboard: [
         [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
-        [{ text: "⚡️ Search Novel" }, { text: "❓ Help" }]
+        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
       ],
       resize_keyboard: true,
       one_time_keyboard: false
@@ -408,8 +408,27 @@ bot.on("message", async (msg) => {
       return bot.emit("text", { ...msg, text: "/sites" });
     case "⚡️ Search Novel":
       return bot.sendMessage(msg.chat.id, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
+    case "ℹ️ About":
+      return bot.emit("text", { ...msg, text: "/about" });
     case "❓ Help":
       return bot.emit("text", { ...msg, text: "/help" });
+  }
+});
+
+bot.onText(/\/about/, async (msg) => {
+  const aboutText = 
+    "🤖 *WebNovel EPUB Bot v1.1.0*\n\n" +
+    "A powerful bot that converts web novels into EPUB files with ease.\n\n" +
+    "📊 *Stats:*\n" +
+    "• Scraper Speed: Concurrent (5x faster)\n" +
+    "• UI: Enhanced with buttons\n" +
+    "• Sites: 14+ dedicated, 100+ generic\n\n" +
+    "🛠️ *Built with Node.js and Playwright*";
+  
+  try {
+    await bot.sendMessage(msg.chat.id, aboutText, { parse_mode: "Markdown" });
+  } catch (err) {
+    console.error("Error in /about command:", err.message);
   }
 });
 
