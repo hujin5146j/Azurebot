@@ -424,31 +424,25 @@ bot.on("message", async (msg) => {
   }
 });
 
-bot.onText(/\/about/, async (msg) => {
-  const aboutText = 
-    "🤖 *WebNovel EPUB Bot v1.1.0*\n\n" +
-    "A powerful bot that converts web novels into EPUB files with ease.\n\n" +
-    "📊 *Stats:*\n" +
-    "• Scraper Speed: Concurrent (5x faster)\n" +
-    "• UI: Enhanced with buttons\n" +
-    "• Sites: 14+ dedicated, 100+ generic\n\n" +
-    "🛠️ *Built with Node.js and Playwright*";
-  
-  try {
-    await bot.sendMessage(msg.chat.id, aboutText, { parse_mode: "Markdown" });
-  } catch (err) {
-    console.error("Error in /about command:", err.message);
-  }
-});
-
 bot.onText(/\/sites/, async (msg) => {
   const sitesList = 
     "🌐 *Supported Websites*\n\n" +
-    "• Royal Road, WebNovel, Wattpad\n" +
-    "• FreeWebNovel, ReadLightNovel\n" +
-    "• NovelFull, MTLNovel, Wuxiaworld\n" +
-    "• ScribbleHub, FanFiction.net, AO3\n\n" +
-    "_...and 100+ more via generic scraper!_";
+    "✅ *Premium Support (Fast/Cover/Info):*\n" +
+    "• Royal Road\n" +
+    "• WebNovel\n" +
+    "• Wattpad\n" +
+    "• FreeWebNovel\n" +
+    "• ReadLightNovel\n" +
+    "• NovelFull\n" +
+    "• MTLNovel\n" +
+    "• Wuxiaworld\n" +
+    "• ScribbleHub\n" +
+    "• FanFiction.net\n" +
+    "• Archive of Our Own (AO3)\n" +
+    "• BoxNovel\n\n" +
+    "✨ *Generic Support (100+ sites):*\n" +
+    "• NovelHall, NovelNext, NovelCool, etc.\n\n" +
+    "_Just paste any novel link to try!_";
 
   try {
     await bot.sendMessage(msg.chat.id, sitesList, { parse_mode: "Markdown" });
@@ -457,9 +451,49 @@ bot.onText(/\/sites/, async (msg) => {
   }
 });
 
-// Alias for /sites
-bot.onText(/\/site/, async (msg) => {
-  await bot.onText(/\/sites/, msg);
+bot.onText(/\/about/, async (msg) => {
+  const aboutText = 
+    "🤖 *WebNovel EPUB Bot v1.1.0*\n\n" +
+    "This bot is your ultimate companion for reading web novels offline. It scrapes content directly from the web and converts it into high-quality, formatted EPUB files.\n\n" +
+    "🚀 *Features:*\n" +
+    "• *Lightning Fast:* Concurrent scraping technology.\n" +
+    "• *Personal Library:* Save and manage your books.\n" +
+    "• *Multi-Site:* Supports 14+ major sites + 100s via generic engine.\n" +
+    "• *Smart Formatting:* Clean text, no ads, proper chaptering.\n\n" +
+    "🛠️ *Powered by Node.js, Playwright & PostgreSQL*";
+  
+  try {
+    await bot.sendMessage(msg.chat.id, aboutText, { parse_mode: "Markdown" });
+  } catch (err) {
+    console.error("Error in /about command:", err.message);
+  }
+});
+
+bot.onText(/\/help/, async (msg) => {
+  const helpText = 
+    "❓ *Need Help?*\n\n" +
+    "1️⃣ *How to use:* Simply copy a link to a novel (e.g., from RoyalRoad or NovelFull) and paste it here.\n\n" +
+    "2️⃣ *Range Selection:* After pasting, you can choose to download the whole book or a specific range of chapters.\n\n" +
+    "3️⃣ *My Library:* Use the button to see all your previously downloaded novels. You can re-download or update them from there.\n\n" +
+    "4️⃣ *Updates:* If a novel has new chapters, go to your Library and tap 'Update'.\n\n" +
+    "⚠️ *Note:* Some sites use heavy protection. If a link fails, wait a few minutes or try another site.";
+
+  const keyboard = {
+    reply_markup: {
+      keyboard: [
+        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
+        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
+      ],
+      resize_keyboard: true
+    },
+    parse_mode: "Markdown"
+  };
+
+  try {
+    await bot.sendMessage(msg.chat.id, helpText, keyboard);
+  } catch (err) {
+    console.error("Error in /help command:", err.message);
+  }
 });
 
 bot.onText(/\/library/, async (msg) => {
