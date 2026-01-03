@@ -103,6 +103,8 @@ async function scrapeChapter(url) {
       ".chapter-body",
       ".chr-c",
       ".cha-words",
+      ".cha-content",
+      ".txt-content",
       "[class*='chapter'][class*='content']",
       ".content",
       "div.text",
@@ -230,6 +232,8 @@ async function scrapeChaptersLogic($, novelUrl, limit, onProgress) {
 
     // Strategy 1: Look for specific FreeWebNovel selectors
     const selectors = [
+      "ul.chapter-list",
+      "ul.list-chapter",
       ".chapter-list", 
       ".m-newest2", 
       ".ul-list5", 
