@@ -373,6 +373,157 @@ async function processNovel(chatId, novelUrl, chapterLimit, infoMsg = null) {
   }
 }
 
+// ---- COMMAND HANDLERS ----
+async function handleLibrary(chatId) {
+  try {
+    const epubs = await getUserLibrary(chatId);
+    const totalSize = await getLibrarySize(chatId);
+    const sizeMB = (totalSize / 1024 / 1024).toFixed(2);
+
+    const keyboard = {
+      reply_markup: {
+        keyboard: [
+          [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
+          [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
+        ],
+        resize_keyboard: true
+      }
+    };
+
+    if (epubs.length === 0) {
+      await bot.sendMessage(chatId, 
+        "📚 *Your Library is Empty*\n\n" +
+        "Start by sending a novel URL to create your first EPUB!",
+        { ...keyboard, parse_mode: "Markdown" }
+      );
+      return;
+    }
+
+    await bot.sendMessage(chatId, `📚 *Your EPUB Library*\n📊 ${epubs.length} books | 💾 ${sizeMB} MB`, { ...keyboard, parse_mode: "Markdown" });
+
+    for (const epub of epubs) {
+      const date = new Date(epub.created_at).toLocaleDateString();
+      const caption = `📖 *${epub.title}*\n📄 ${epub.chapters_count} chapters\n📅 ${date}`;
+
+      const inlineKeyboard = {
+        inline_keyboard: [
+          [
+            { text: "⬇️ Download", callback_data: `dl_${epub.id}` },
+            { text: "🔄 Update", callback_data: `up_${epub.id}` },
+            { text: "🗑 Delete", callback_data: `del_${epub.id}` }
+          ]
+        ]
+      };
+
+      if (epub.cover_url) {
+        try {
+          await bot.sendPhoto(chatId, epub.cover_url, {
+            caption: caption,
+            parse_mode: "Markdown",
+            reply_markup: inlineKeyboard
+          });
+        } catch (e) {
+          await bot.sendMessage(chatId, caption, {
+            parse_mode: "Markdown",
+            reply_markup: inlineKeyboard
+          });
+        }
+      } else {
+        await bot.sendMessage(chatId, caption, {
+          parse_mode: "Markdown",
+          reply_markup: inlineKeyboard
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Library error:", err.message);
+    await bot.sendMessage(chatId, "❌ Error loading library. Try again later.");
+  }
+}
+
+async function handleSites(chatId) {
+  const sitesList = 
+    "🌐 *Supported Websites*\n\n" +
+    "✅ *Premium Support (Fast/Cover/Info):*\n" +
+    "• Royal Road\n" +
+    "• WebNovel\n" +
+    "• Wattpad\n" +
+    "• FreeWebNovel\n" +
+    "• ReadLightNovel\n" +
+    "• NovelFull\n" +
+    "• MTLNovel\n" +
+    "• Wuxiaworld\n" +
+    "• ScribbleHub\n" +
+    "• FanFiction.net\n" +
+    "• Archive of Our Own (AO3)\n" +
+    "• BoxNovel\n\n" +
+    "✨ *Generic Support (100+ sites):*\n" +
+    "• NovelHall, NovelNext, NovelCool, etc.\n\n" +
+    "_Just paste any novel link to try!_";
+
+  const keyboard = {
+    reply_markup: {
+      keyboard: [
+        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
+        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
+      ],
+      resize_keyboard: true
+    },
+    parse_mode: "Markdown"
+  };
+
+  try {
+    await bot.sendMessage(chatId, sitesList, keyboard);
+  } catch (err) {
+    console.error("Error in handleSites:", err.message);
+  }
+}
+
+async function handleAbout(chatId) {
+  const aboutText = 
+    "🤖 *WebNovel EPUB Bot v1.1.0*\n\n" +
+    "This bot is your ultimate companion for reading web novels offline. It scrapes content directly from the web and converts it into high-quality, formatted EPUB files.\n\n" +
+    "🚀 *Features:*\n" +
+    "• *Lightning Fast:* Concurrent scraping technology.\n" +
+    "• *Personal Library:* Save and manage your books.\n" +
+    "• *Multi-Site:* Supports 14+ major sites + 100s via generic engine.\n" +
+    "• *Smart Formatting:* Clean text, no ads, proper chaptering.\n\n" +
+    "🛠️ *Powered by Node.js, Playwright & PostgreSQL*";
+  
+  try {
+    await bot.sendMessage(chatId, aboutText, { parse_mode: "Markdown" });
+  } catch (err) {
+    console.error("Error in handleAbout:", err.message);
+  }
+}
+
+async function handleHelp(chatId) {
+  const helpText = 
+    "❓ *Need Help?*\n\n" +
+    "1️⃣ *How to use:* Simply copy a link to a novel (e.g., from RoyalRoad or NovelFull) and paste it here.\n\n" +
+    "2️⃣ *Range Selection:* After pasting, you can choose to download the whole book or a specific range of chapters.\n\n" +
+    "3️⃣ *My Library:* Use the button to see all your previously downloaded novels. You can re-download or update them from there.\n\n" +
+    "4️⃣ *Updates:* If a novel has new chapters, go to your Library and tap 'Update'.\n\n" +
+    "⚠️ *Note:* Some sites use heavy protection. If a link fails, wait a few minutes or try another site.";
+
+  const keyboard = {
+    reply_markup: {
+      keyboard: [
+        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
+        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
+      ],
+      resize_keyboard: true
+    },
+    parse_mode: "Markdown"
+  };
+
+  try {
+    await bot.sendMessage(chatId, helpText, keyboard);
+  } catch (err) {
+    console.error("Error in handleHelp:", err.message);
+  }
+}
+
 // ---- COMMANDS ----
 bot.onText(/\/start/, async (msg) => {
   const welcomeMessage = "✨ *Welcome to WebNovel EPUB Bot* ✨";
@@ -415,169 +566,23 @@ bot.on("message", async (msg) => {
 
   if (text === "📚 My Library") {
     console.log("Matched My Library button");
-    return bot.emit("text", { ...msg, text: "/library" });
+    return handleLibrary(chatId);
   } else if (text === "🌐 Supported Sites") {
     console.log("Matched Supported Sites button");
-    return bot.emit("text", { ...msg, text: "/sites" });
+    return handleSites(chatId);
   } else if (text === "⚡️ Search Novel") {
     return bot.sendMessage(chatId, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
   } else if (text === "ℹ️ About") {
-    return bot.emit("text", { ...msg, text: "/about" });
+    return handleAbout(chatId);
   } else if (text === "❓ Help") {
-    return bot.emit("text", { ...msg, text: "/help" });
+    return handleHelp(chatId);
   }
 });
 
-bot.onText(/\/sites/, async (msg) => {
-  const sitesList = 
-    "🌐 *Supported Websites*\n\n" +
-    "✅ *Premium Support (Fast/Cover/Info):*\n" +
-    "• Royal Road\n" +
-    "• WebNovel\n" +
-    "• Wattpad\n" +
-    "• FreeWebNovel\n" +
-    "• ReadLightNovel\n" +
-    "• NovelFull\n" +
-    "• MTLNovel\n" +
-    "• Wuxiaworld\n" +
-    "• ScribbleHub\n" +
-    "• FanFiction.net\n" +
-    "• Archive of Our Own (AO3)\n" +
-    "• BoxNovel\n\n" +
-    "✨ *Generic Support (100+ sites):*\n" +
-    "• NovelHall, NovelNext, NovelCool, etc.\n\n" +
-    "_Just paste any novel link to try!_";
-
-  const keyboard = {
-    reply_markup: {
-      keyboard: [
-        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
-        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
-      ],
-      resize_keyboard: true
-    },
-    parse_mode: "Markdown"
-  };
-
-  try {
-    await bot.sendMessage(msg.chat.id, sitesList, keyboard);
-  } catch (err) {
-    console.error("Error in /sites command:", err.message);
-  }
-});
-
-bot.onText(/\/about/, async (msg) => {
-  const aboutText = 
-    "🤖 *WebNovel EPUB Bot v1.1.0*\n\n" +
-    "This bot is your ultimate companion for reading web novels offline. It scrapes content directly from the web and converts it into high-quality, formatted EPUB files.\n\n" +
-    "🚀 *Features:*\n" +
-    "• *Lightning Fast:* Concurrent scraping technology.\n" +
-    "• *Personal Library:* Save and manage your books.\n" +
-    "• *Multi-Site:* Supports 14+ major sites + 100s via generic engine.\n" +
-    "• *Smart Formatting:* Clean text, no ads, proper chaptering.\n\n" +
-    "🛠️ *Powered by Node.js, Playwright & PostgreSQL*";
-  
-  try {
-    await bot.sendMessage(msg.chat.id, aboutText, { parse_mode: "Markdown" });
-  } catch (err) {
-    console.error("Error in /about command:", err.message);
-  }
-});
-
-bot.onText(/\/help/, async (msg) => {
-  const helpText = 
-    "❓ *Need Help?*\n\n" +
-    "1️⃣ *How to use:* Simply copy a link to a novel (e.g., from RoyalRoad or NovelFull) and paste it here.\n\n" +
-    "2️⃣ *Range Selection:* After pasting, you can choose to download the whole book or a specific range of chapters.\n\n" +
-    "3️⃣ *My Library:* Use the button to see all your previously downloaded novels. You can re-download or update them from there.\n\n" +
-    "4️⃣ *Updates:* If a novel has new chapters, go to your Library and tap 'Update'.\n\n" +
-    "⚠️ *Note:* Some sites use heavy protection. If a link fails, wait a few minutes or try another site.";
-
-  const keyboard = {
-    reply_markup: {
-      keyboard: [
-        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
-        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
-      ],
-      resize_keyboard: true
-    },
-    parse_mode: "Markdown"
-  };
-
-  try {
-    await bot.sendMessage(msg.chat.id, helpText, keyboard);
-  } catch (err) {
-    console.error("Error in /help command:", err.message);
-  }
-});
-
-bot.onText(/\/library/, async (msg) => {
-  const userId = msg.chat.id;
-  const keyboard = {
-    reply_markup: {
-      keyboard: [
-        [{ text: "📚 My Library" }, { text: "🌐 Supported Sites" }],
-        [{ text: "⚡️ Search Novel" }, { text: "ℹ️ About" }, { text: "❓ Help" }]
-      ],
-      resize_keyboard: true
-    }
-  };
-
-  try {
-    const epubs = await getUserLibrary(userId);
-    const totalSize = await getLibrarySize(userId);
-    const sizeMB = (totalSize / 1024 / 1024).toFixed(2);
-
-    if (epubs.length === 0) {
-      await bot.sendMessage(userId, 
-        "📚 *Your Library is Empty*\n\n" +
-        "Start by sending a novel URL to create your first EPUB!",
-        { ...keyboard, parse_mode: "Markdown" }
-      );
-      return;
-    }
-
-    await bot.sendMessage(userId, `📚 *Your EPUB Library*\n📊 ${epubs.length} books | 💾 ${sizeMB} MB`, { ...keyboard, parse_mode: "Markdown" });
-
-    for (const epub of epubs) {
-      const date = new Date(epub.created_at).toLocaleDateString();
-      const caption = `📖 *${epub.title}*\n📄 ${epub.chapters_count} chapters\n📅 ${date}`;
-
-      const keyboard = {
-        inline_keyboard: [
-          [
-            { text: "⬇️ Download", callback_data: `dl_${epub.id}` },
-            { text: "🔄 Update", callback_data: `up_${epub.id}` },
-            { text: "🗑 Delete", callback_data: `del_${epub.id}` }
-          ]
-        ]
-      };
-
-      if (epub.cover_url) {
-        try {
-          await bot.sendPhoto(userId, epub.cover_url, {
-            caption: caption,
-            parse_mode: "Markdown",
-            reply_markup: keyboard
-          });
-        } catch (e) {
-          await bot.sendMessage(userId, caption, {
-            parse_mode: "Markdown",
-            reply_markup: keyboard
-          });
-        }
-      } else {
-        await bot.sendMessage(userId, caption, {
-          parse_mode: "Markdown",
-          reply_markup: keyboard
-        });
-      }
-    }
-  } catch (err) {
-    console.error("Library error:", err.message);
-    await bot.sendMessage(userId, "❌ Error loading library. Try again later.");
-  }
-});
+bot.onText(/\/sites/, (msg) => handleSites(msg.chat.id));
+bot.onText(/\/about/, (msg) => handleAbout(msg.chat.id));
+bot.onText(/\/help/, (msg) => handleHelp(msg.chat.id));
+bot.onText(/\/library/, (msg) => handleLibrary(msg.chat.id));
 
 // Helper for download/update/delete callback handling
 bot.on("callback_query", async (query) => {
