@@ -3,6 +3,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const fs = require("fs");
 const path = require("path");
+const express = require("express");
 require('dotenv').config();
 require("dns").setDefaultResultOrder("ipv4first");
 
@@ -29,19 +30,44 @@ const { createEpub } = require("./epub/builder");
 
 // ---- SAFE ENV READ ----
 const BOT_TOKEN = process.env.BOT_TOKEN;
+const PORT = process.env.PORT || 5000;
+const WEBHOOK_URL = process.env.WEBHOOK_URL; // e.g. https://your-app.azurewebsites.net
 
 console.log("BOT_TOKEN present:", !!BOT_TOKEN);
 
 if (!BOT_TOKEN) {
-  console.error("❌ BOT_TOKEN is NOT set. Waiting for Railway env injection...");
-  setInterval(() => {
-    console.error("⏳ BOT_TOKEN still missing...");
-  }, 30000);
+  console.error("❌ BOT_TOKEN is NOT set. Exiting...");
   process.exit(1);
 }
 
 // ---- INIT BOT ----
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+let bot;
+const app = express();
+app.use(express.json());
+
+if (WEBHOOK_URL) {
+  bot = new TelegramBot(BOT_TOKEN);
+  bot.setWebHook(`${WEBHOOK_URL}/webhook`);
+  console.log(`✅ Webhook set to ${WEBHOOK_URL}/webhook`);
+} else {
+  console.error("❌ WEBHOOK_URL is NOT set. Azure hosting requires webhooks.");
+  process.exit(1);
+}
+
+// ---- AZURE WEBHOOK ENDPOINT ----
+app.post("/webhook", (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.send("Bot is running!");
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
 // Initialize database on startup
 initializeDatabase().then(() => {
