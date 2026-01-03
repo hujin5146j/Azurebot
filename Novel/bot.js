@@ -411,9 +411,13 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text.trim();
   
+  console.log(`Received message: "${text}" from ${chatId}`);
+
   if (text === "📚 My Library") {
+    console.log("Matched My Library button");
     return bot.emit("text", { ...msg, text: "/library" });
   } else if (text === "🌐 Supported Sites") {
+    console.log("Matched Supported Sites button");
     return bot.emit("text", { ...msg, text: "/sites" });
   } else if (text === "⚡️ Search Novel") {
     return bot.sendMessage(chatId, "🔍 *Search Feature Coming Soon!*\n\nFor now, please paste a direct novel URL from one of our supported sites.", { parse_mode: "Markdown" });
@@ -617,8 +621,21 @@ bot.onText(/\/help/, async (msg) => {
 bot.on("message", async msg => {
   if (!msg.text) return;
 
+  const text = msg.text.trim();
+  const lowerText = text.toLowerCase();
+  
+  // Skip if it's a command we handle elsewhere
+  if (text.startsWith("/") || 
+      text === "📚 My Library" || 
+      text === "🌐 Supported Sites" || 
+      text === "⚡️ Search Novel" || 
+      text === "ℹ️ About" || 
+      text === "❓ Help") {
+    return;
+  }
+
   // Check if message contains a URL
-  const urlMatch = msg.text.match(/https?:\/\/[^\s]+/);
+  const urlMatch = text.match(/https?:\/\/[^\s]+/);
 
   if (urlMatch) {
     const novelUrl = urlMatch[0];
